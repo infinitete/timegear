@@ -9,8 +9,8 @@
     "scale",
     "timescale"
   ],
-  "main": "build/index.js",
-  "types": "build/index.d.ts",
+  "main": "build/main.js",
+  "types": "build/main.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "jest"
