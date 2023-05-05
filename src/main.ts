@@ -1,19 +1,24 @@
 interface StopAble {
   stop: Function;
-  now: () => Date;
   since: () => Date;
+  now: () => Date;
 }
+
+const __timeout = 0;
+const __interval = 1;
+
+type __timeType = typeof __timeout | typeof __interval;
 
 var __timeouts: Map<number, StopAble> = new Map();
 var __intervals: Map<number, StopAble> = new Map();
 
 class Time {
-  #type: 0 | 1;
+  #type: __timeType;
   #timeout: number;
   #scale: number;
   #since: Date;
 
-  constructor(type: 0 | 1, timeout: number, scale: number, since: Date) {
+  constructor(type: __timeType, timeout: number, scale: number, since: Date) {
     this.#type = type;
     this.#scale = scale;
     this.#since = since;
@@ -53,22 +58,26 @@ class Time {
 
 class TimeGear {
   #scale: number = 1;
+  #since: Date = new Date();
 
-  constructor(scale: number) {
+  constructor(scale: number, since: Date | undefined) {
     this.#scale = scale;
+    if (since !== undefined) {
+      this.#since = since;
+    }
   }
 
   once(when: Date, cb: Function): StopAble | null {
-    const diff = when.getTime() - new Date().getTime();
+    const diff = when.getTime() - this.#since.getTime();
     if (diff < 1) {
       return null;
     }
 
     return new Time(
-      0,
+      __timeout,
       setTimeout(cb, diff / this.#scale),
       this.#scale,
-      new Date()
+      new Date(this.#since)
     );
   }
 
@@ -91,7 +100,12 @@ class TimeGear {
         return null;
     }
 
-    return new Time(1, setInterval(cb, tm), this.#scale, new Date());
+    return new Time(
+      __interval,
+      setInterval(cb, tm),
+      this.#scale,
+      new Date(this.#since)
+    );
   }
 
   destroy() {
