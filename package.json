@@ -9,7 +9,7 @@
     "scale",
     "timescale"
   ],
-  "main": "stc/main.ts",
+  "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
     "build": "tsc",
