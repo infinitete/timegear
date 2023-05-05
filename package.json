@@ -1,0 +1,19 @@
+{
+  "name": "timegear",
+  "version": "1.0.0",
+  "description": "a time scale tool",
+  "keywords": ["time", "gear", "timegear", "scale", "timescale"],
+  "main": "stc/main.ts",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "author": "renshan",
+  "files": ["build/"],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.16.3",
+    "typescript": "^5.0.4"
+  }
+}
