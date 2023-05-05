@@ -62,7 +62,7 @@ class TimeGear {
   #scale: number = 1;
   #since: Date = new Date();
 
-  constructor(scale: number, since: Date | undefined) {
+  constructor(scale: number, since?: Date) {
     this.#scale = scale;
     if (since !== undefined) {
       this.#since = since;
