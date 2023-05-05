@@ -17,12 +17,14 @@ class Time {
   #timeout: number;
   #scale: number;
   #since: Date;
+  #started: Date;
 
   constructor(type: __timeType, timeout: number, scale: number, since: Date) {
     this.#type = type;
     this.#scale = scale;
     this.#since = since;
     this.#timeout = timeout;
+    this.#started = new Date();
 
     if (this.#type === 0) {
       __timeouts.set(timeout, this);
@@ -36,7 +38,7 @@ class Time {
   now(): Date {
     return new Date(
       this.#since.getTime() +
-        (new Date().getTime() - this.#since.getTime()) * this.#scale
+        (new Date().getTime() - this.#started.getTime()) * this.#scale
     );
   }
 
