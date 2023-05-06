@@ -4,42 +4,59 @@ interface StopAble {
   now: () => Date;
 }
 
+type TimeoutFn = (now: Date) => void;
+
 const __timeout = 0;
 const __interval = 1;
 
 type __timeType = typeof __timeout | typeof __interval;
 
-var __timeouts: Map<number, StopAble> = new Map();
-var __intervals: Map<number, StopAble> = new Map();
+var __timeouts: Map<NodeJS.Timeout, StopAble> = new Map();
+var __intervals: Map<NodeJS.Timeout, StopAble> = new Map();
 
 class Time {
+  #cb: Function;
   #type: __timeType;
-  #timeout: number;
+  #timeout: NodeJS.Timeout;
   #scale: number;
   #since: Date;
-  #started: Date;
 
-  constructor(type: __timeType, timeout: number, scale: number, since: Date) {
+  #speed: number;
+  #times: number;
+
+  constructor(
+    cb: Function,
+    type: __timeType,
+    scale: number,
+    since: Date,
+    speed: number
+  ) {
+    this.#cb = cb;
     this.#type = type;
     this.#scale = scale;
     this.#since = since;
-    this.#timeout = timeout;
-    this.#started = new Date();
+    this.#times = 1;
+    this.#speed = speed;
 
     if (this.#type === 0) {
-      __timeouts.set(timeout, this);
+      this.#timeout = setTimeout(this.cbFn.bind(this), speed);
+      __timeouts.set(this.#timeout, this);
     }
 
     if (this.#type === 1) {
-      __intervals.set(timeout, this);
+      this.#timeout = setInterval(this.cbFn.bind(this), speed);
+      __intervals.set(this.#timeout, this);
     }
   }
 
+  cbFn() {
+    this.#cb();
+    this.#times++;
+  }
+
   now(): Date {
-    return new Date(
-      this.#since.getTime() +
-        (new Date().getTime() - this.#started.getTime()) * this.#scale
-    );
+    const diff = this.#times * this.#speed;
+    return new Date(this.#since.getTime() + diff * this.#scale);
   }
 
   stop() {
@@ -69,18 +86,13 @@ class TimeGear {
     }
   }
 
-  once(when: Date, cb: Function): StopAble | null {
+  once(when: Date, cb: TimeoutFn): StopAble | null {
     const diff = when.getTime() - this.#since.getTime();
     if (diff < 1) {
       return null;
     }
 
-    return new Time(
-      __timeout,
-      setTimeout(cb, diff / this.#scale),
-      this.#scale,
-      new Date(this.#since)
-    );
+    return new Time(cb, __timeout, this.#scale, new Date(this.#since), 0);
   }
 
   every(e: number, d: "s" | "m" | "h", cb: Function): StopAble | null {
@@ -91,23 +103,18 @@ class TimeGear {
         break;
       }
       case "m": {
-        tm *= (e / this.#scale) * 60;
+        tm *= e / (this.#scale * 60);
         break;
       }
       case "h": {
-        tm *= (e / this.#scale) * 60 * 60;
+        tm *= e / (this.#scale * 60 * 60);
         break;
       }
       default:
         return null;
     }
 
-    return new Time(
-      __interval,
-      setInterval(cb, tm),
-      this.#scale,
-      new Date(this.#since)
-    );
+    return new Time(cb, __interval, this.#scale, new Date(this.#since), tm);
   }
 
   destroy() {
